@@ -5,6 +5,8 @@ import subprocess
 import sys
 import threading
 import time
+import socket
+
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_ambient_light import AmbientLight
 from tinkerforge.bricklet_barometer import Barometer
@@ -19,11 +21,13 @@ lcdid = None
 def installSitemap(srcbase, dstbase):
     sitemapsrc = os.path.join(srcbase, "tf.sitemap")
     sitemapdst = os.path.join(dstbase, "sitemaps", "tf.sitemap")
+    print("Installing sitemap file " + sitemapsrc + "  to " + sitemapdst)
     shutil.copy(sitemapsrc, sitemapdst)
      
 def installRules(srcbase, dstbase):
     rulessrc = os.path.join(srcbase, "tf.rules")
     rulesdst = os.path.join(dstbase, "rules", "tf.rules")
+    print("Installing rules file " + rulessrc + "  to " + rulesdst)
     shutil.copy(rulessrc, rulesdst)
 
 def installItems(srcbase, dstbase, tmp):
@@ -42,11 +46,13 @@ def installItems(srcbase, dstbase, tmp):
     tmpinfh.close()
     tmpoutfh.close()
     itemsdst = os.path.join(dstbase, "items", itemsfilename)
+    print("Installing items file " + itemstmpfile + "  to " + itemsdst)
     shutil.copy(itemstmpfile, itemsdst)
     
 def installOpenhabcfg(srcbase, dstbase):
     openhabcfgsrc = os.path.join(srcbase, "openhab.cfg")
     openhabcfgdst = os.path.join(dstbase, "openhab.cfg")
+    print("Installing openhab.cfg " + openhabcfgsrc + "  to " + openhabcfgdst)
     shutil.copy(openhabcfgsrc, openhabcfgdst)
 
 def restartOpenhab():
@@ -95,16 +101,21 @@ def discover():
     ipcon = IPConnection()
     ipcon.register_callback(IPConnection.CALLBACK_CONNECTED, cb_connected)
     ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, cb_enumerate)
-    ipcon.connect(HOST, PORT)
-    w = threading.Thread(target=wait)
-    w.start()
-    w.join()
-    print("baromenter id: " + str(barometerid))
-    print("humidity id: " + str(humidityid))
-    print("ambient id: " + str(ambientid))
-    print("lcd id: " + str(lcdid))
-    
-    ipcon.disconnect()
+    try:
+        ipcon.connect(HOST, PORT)
+        w = threading.Thread(target=wait)
+        w.start()
+        w.join()
+        print("baromenter id: " + str(barometerid))
+        print("humidity id: " + str(humidityid))
+        print("ambient id: " + str(ambientid))
+        print("lcd id: " + str(lcdid))
+        
+        ipcon.disconnect()
+    except socket.error, e:
+        global discovery_timed_out
+        discovery_timed_out = True
+        print("Error: ipconnection failed " + str(e))
 
 def main(args):    
     discover()
@@ -117,6 +128,10 @@ def main(args):
         installItems(srcbase, dstbase, tmp)
         installSitemap(srcbase, dstbase)
         installRules(srcbase, dstbase)
+        print("----")
+        print("Start openHAB with /etc/init.d/openhab start if it is not running.")
+        print("If openHAB is already running the configuration will automatically reloaded. Be patient!")
+        print("----")
         #restartOpenhab()
     else:
         print("Error: discovery timed out")
