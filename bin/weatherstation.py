@@ -76,8 +76,16 @@ def cb_enumerate(uid, connected_uid, position, hardware_version, firmware_versio
         global lcdid
         lcdid = uid
 
+discovery_timed_out = False
 def wait():
+    counter = 0
+    timeout = 10
     while (barometerid is None) or (humidityid is None) or (ambientid is None) or (lcdid is None):
+        if counter == timeout:
+            global discovery_timed_out
+            discovery_timed_out = True
+            return
+        counter += 1
         time.sleep(1)
 
 def discover():
@@ -100,16 +108,18 @@ def discover():
 
 def main(args):    
     discover()
-    projdir = os.path.split(os.path.dirname(os.path.realpath(args[0])))[0]
-    tmp = os.path.join(projdir, 'tmp')
-    srcbase = os.path.join(projdir, "resources", "weatherstation")
-    dstbase = os.path.join(os.path.sep, "etc", "openhab", "configurations" )
-    installOpenhabcfg(srcbase, dstbase)
-    installItems(srcbase, dstbase, tmp)
-    installSitemap(srcbase, dstbase)
-    installRules(srcbase, dstbase)
-
-    #restartOpenhab()
+    if not discovery_timed_out:
+        projdir = os.path.split(os.path.dirname(os.path.realpath(args[0])))[0]
+        tmp = os.path.join(projdir, 'tmp')
+        srcbase = os.path.join(projdir, "resources", "weatherstation")
+        dstbase = os.path.join(os.path.sep, "etc", "openhab", "configurations" )
+        installOpenhabcfg(srcbase, dstbase)
+        installItems(srcbase, dstbase, tmp)
+        installSitemap(srcbase, dstbase)
+        installRules(srcbase, dstbase)
+        #restartOpenhab()
+    else:
+        print("Error: discovery timed out")
 
 if __name__ == '__main__':
     main(sys.argv)
