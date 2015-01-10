@@ -1,7 +1,7 @@
 # openHAB TinkerForge - RED Brick Weather Station
 
 ## Description
-This project is meant to be used on a TinkerForge RED Brick.
+This project is meant to be used on a TinkerForge RED Brick and the TinkerForge Weather Station Kit.
 
 The project contains a set of configuration files for openHAB and the TinkerForgeBinding.
 The script bin/weatherstation.py adapts and installs the configuration files.
