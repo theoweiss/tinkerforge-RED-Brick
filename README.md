@@ -22,4 +22,11 @@ items configuration accordingly.
     * /etc/init.d/openhab start
 * if openHAB is already running the configuration will be automatically reloaded, you do not need to restart openHAB!
 
+## Use It
+* point your browser (unfortunately only webkit based browsers are supported) to
+   * http://${red-brick-ip}:8080/openhab.app?sitemap=tf
+   * with zeroconf: http://red-brick.local:8080/openhab.app?sitemap=tf
+* use iOS or Android openHAB app
+
+
     
