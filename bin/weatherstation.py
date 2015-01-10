@@ -2,6 +2,7 @@
 import shutil
 import os
 import subprocess
+import sys
 import threading
 import time
 from tinkerforge.ip_connection import IPConnection
@@ -57,15 +58,11 @@ def restartOpenhab():
     return 0
 
 def cb_connected(connect_reason):
-    if connect_reason == IPConnection.CONNECT_REASON_REQUEST:
-        print("Connected by request")
-    elif connect_reason == IPConnection.CONNECT_REASON_AUTO_RECONNECT:
-        print("Auto-Reconnect")
     ipcon.enumerate()
 
 def cb_enumerate(uid, connected_uid, position, hardware_version, firmware_version,
                  device_identifier, enumeration_type):
-    print("UID: " + uid + ", Enumeration Type: " + str(enumeration_type) + " identifier: " + str(device_identifier))
+    #print("UID: " + uid + ", Enumeration Type: " + str(enumeration_type) + " identifier: " + str(device_identifier))
     if device_identifier == AmbientLight.DEVICE_IDENTIFIER:
         global ambientid
         ambientid = uid
@@ -101,11 +98,11 @@ def discover():
     
     ipcon.disconnect()
 
-def main():    
+def main(args):    
     discover()
-    cwd = os.getcwd()
-    tmp = os.path.join(cwd, '..', 'tmp')
-    srcbase = os.path.join(cwd, "..", "resources", "weatherstation")
+    projdir = os.path.split(os.path.dirname(os.path.realpath(args[0])))[0]
+    tmp = os.path.join(projdir, 'tmp')
+    srcbase = os.path.join(projdir, "resources", "weatherstation")
     dstbase = os.path.join(os.path.sep, "etc", "openhab", "configurations" )
     installOpenhabcfg(srcbase, dstbase)
     installItems(srcbase, dstbase, tmp)
@@ -115,4 +112,4 @@ def main():
     #restartOpenhab()
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
